@@ -3,5 +3,4 @@
 *.aux
 *.dvi
 doc/*.log
-doc/*.pdf
 doc/*.d
