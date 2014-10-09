@@ -99,15 +99,28 @@ dramatically outperforms CAS based and blocking locking based FIFO
 queues in high contention situations.
 
 
-\section{Milestones}
+\section{Project Plan and Milestones}
 
-Week 1~2: Add weak atomic instruction support to OpenJDK 9. And test
-the performance 
+In this project I'm going to work on how the weaker atomic
+instructions could be used in implementing latch-free data structures. 
 
-Week 3~4: Find a data structure that is suitable for implementation
-using weaker atomic instructions. 
+\begin{itemize}
 
-Week 5~: Implement the chosen data structure.
+  \item First one to two weeks. As a first step, I'm going to expose
+    weaker atomic instructions to OpenJDK 9. And modify the part of
+    source code which are currently using CAS to use weaker atomic
+    instructions if they can provide the same functionality. Some
+    experiments will be conducted to validate the performance
+    improvement.
+
+\item Week three ~ four. Survey the various latch-free data
+  structures. Find one of them that is suitable for implementation
+  using weaker atomic instructions.
+
+\item Week five~: Implement the chosen data structure. Do experiments
+  to validate the performance improvements. 
+
+\end{itemize}
 
 \bibliographystyle{abbrv}
 \bibliography{CSE548}
