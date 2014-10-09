@@ -5,69 +5,78 @@ structures}
 \documentclass{sig-alternate}
 
 \begin{document}
-\numberofauthors{1} %  in this sample file, there are a *total*
-% of EIGHT authors. SIX appear on the 'first-page' (for formatting
-% reasons) and the remaining two appear in the \additionalauthors section.
-%
-\author{
-% You can go ahead and credit any number of authors here,
-% e.g. one 'row of three' or two rows (consisting of one row of three
-% and a second row of one, two or three).
-%
-% The command \alignauthor (no curly braces needed) should
-% precede each author name, affiliation/snail-mail address and
-% e-mail address. Additionally, tag each line of
-% affiliation/address with \affaddr, and tag the
-% e-mail address with \email.
-%
-% 1st. author
+\numberofauthors{1} 
+
+\author {
 \alignauthor
 Shengliang Xu\\
-       \email{slxu@cs.washington.edu}
+\email{slxu@cs.washington.edu}
 }
 \maketitle
 
-%\category{H.4}{Information Systems Applications}{Miscellaneous}
-%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
-%\terms{Theory}
-%\keywords{ACM proceedings, \LaTeX, text tagging}
-
 \section{Introduction}
 
-Since the rise of multi-core architectures, multi-threaded concurrent
-programming quickly become the technique for further improving program
+Since the rise of multi-core architectures in the recent years,
+multi-threaded concurrent programming quickly become one of the
+critical programming techniques for further improving program
 performances. 
 
-The biggest problem in concurrent programming is to synchronize access
-of shared memories. There are generally two ways of synchronization
-mechnisms. The first one is blocking through locks. Before accessing
-an area of shared memories, a thread must first aquire a lock. If the
-lock is currently held by another thread, the aquiring thread will
-yield the CPU and wait for the lock.  The second one is non-blocking
-synchronization through special atomic instructions. The de facto
-atomic instruction is the Compare-and-Swap (CAS). Most commonly, when
-a thread wants to access a shared memory block, it first uses an
-atomic instruction to atomically change a small piece of memory to an
-expected state. Other threads see the change and so won't break the
-thread's operations.
+The biggest problem in concurrent programming is synchronizing access
+to shared memories among different threads. There are generally two
+ways of synchronization. 
+
+\begin{itemize} 
+
+  \item The first one is blocking through locks. Before accessing an
+    area of shared memories, a thread must first aquire a lock. If the
+    lock is currently held by another thread, the aquiring thread will
+    yield the CPU. OS is responsible for awaking threads who are
+    chosen for execution after the lock is free.  
+
+  \item The second one is non-blocking synchronization through special
+    atomic instructions. The de facto atomic instruction is the
+    Compare-and-Swap (CAS). Most commonly, CAS is used to implement a
+    spin lock. When a thread wants to access a shared memory block, it
+    first gets a spin lock.  Other threads wait the lock to be free by
+    repeatedly testing the spin lock.
+
+\end{itemize}
 
 Atomic instruction based non-blocking synchronization has the
 advantage of low system overhead comparing with blocking
 synchronizations. Recently, a lot of research efforts have been put
-into developing latch-free data structures. However, most of them are
-based on the strongest atomic instruction, i.e. CAS. For example,
-OpenJDK 9 uses only CAS to implement all its atomic functionalities
-(The java.util.concurrent.atomic).
+into developing latch-free data structures. And also, many higher
+level programming languages add direct support to them through
+libraries , such as Java ( in the java.util.concurrent.atomic package). 
 
-Except for CAS, there are several weaker atomic instructions, as
-listed in Table \ref{table:atomic_instructions}. CAS is the strongest
-atomic instruction. It is able to implement all other instructions.
-What it does is (this is how X86 implemented it) given a memory word
-$m_1$, compare the value of it with another value $c$, if the two
-matches, replace the value of $m_1$ to a new value $m_2$. 
 
-The problem of CAS is that it can fail. The typical usage of CAS is
-using a while loop such as the following simple code block:
+\begin{table}
+  \label{table:atomic_instructions}
+  \caption{Atomic instructions provided by various platforms}
+  \begin{tabular}{ l || p{1.5cm} | p{1.5cm} | p{1.2cm} | p{1.2cm} }
+    & Compare-and-Swap & Swap & Test-and-Set & Fetch-and-Add \\ \hline
+    ARM & LL/SC & deprecated & no & no \\
+    POWER & LL/SC & no & no & no \\
+    SPARC & yes & deprecated & yes & no \\
+    x86 & yes & yes& yes & yes \\ \hline
+  \end{tabular}
+\end{table}
+
+
+There are several different atomic instructions available in current
+CPU architectures, with different semantics. Table
+\ref{table:atomic_instructions} lists the most popular, if not all of,
+atomic instructions. Among them, CAS has the strongest functionality
+because we are able to use CAS to replace all others. Most of research
+and engineering on latch free data structure and problem solving are
+based on CAS. For example, OpenJDK 9 uses only CAS to implement all
+its atomic variable functionalities.
+
+How CAS works is that (this is how X86 implemented it) given a memory
+word $m_1$, compare the value of it with another value $c$, if the two
+matches, replace the value of $m_1$ to a new value $m_2$.  The problem
+of CAS is that it can fail. The typical usage of CAS is using a while
+loop such as the following simple code block:
 
 \begin{quote}
   while (CAS fail) \{
@@ -79,6 +88,7 @@ It basically means keeping doing CAS until it succeeds. This can
 result in poor performances if the number of threads concurrently
 doing CAS is big.
 
+
 On the other hand, the weaker atomic instructions succeed every time.
 This difference may result in highly efficient algorithms for some
 concurrent problems. For example, for an atomic integer ID generator,
@@ -87,18 +97,6 @@ in high contention situations. Recently, Morrison et. al. designed a
 new FIFO queue using Fetch-and-Add \cite{Morrison:2013} which
 dramatically outperforms CAS based and blocking locking based FIFO
 queues in high contention situations.
-
-\begin{table}
-  \label{table:atomic_instructions}
-  \caption{Atomic instructions provided by various platforms}
-  \begin{tabular}{ l || c  c  c  c }\hline
-    & Compare-and-Swap & Swap & Test-and-Set & Fetch-and-Add \\ \hline
-    ARM & LL/SC & deprecated & no & no \\
-    POWER & LL/SC & no & no & no \\
-    SPARC & yes & deprecated & yes & no \\
-    x86 & yes & yes& yes & yes \\ \hline
-    \end{tabular}
-\end{table}
 
 
 \section{Milestones}
